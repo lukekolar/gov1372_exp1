@@ -58,6 +58,25 @@ First, let's look at the rare disease problem. You'll recall from the Kahneman (
 
 Note that extensions to questions are not the same as data science questions. Complete this question if you like, but it is not required for data science students like actual data science questions.
 
+```{r, include = F, eval = F, message = F, warning = F}
+
+library(tidyverse)
+
+bias_data %>% 
+  filter(rare_disease_prog == "Program B") %>%
+  count(rare_disease_cond)
+
+bias_data %>% 
+  filter(rare_disease_prog == "Program B") %>%
+  count(rare_disease_cond)
+
+
+?count
+  
+
+```
+
+
 
 ## Question 2
 Now let's move on to the Linda problem. As we read in Kahneman (2003), answers to this problem tend to exhibit a pattern called a "conjunction fallacy" whereby respondents overrate the probability that Linda is a bank teller \textit{and} a feminist rather than just a bank teller. From probability theory, we know that the conjunction of two events A and B can't be more probable than either of the events occurring by itself; that is, $P(A) \ge P(A \wedge B)$ and $P(B) \ge P(A \wedge B)$\footnote{The symbol $\wedge$ is used in logical expressions to mean "AND". If there are two conditions, A and B, then $A \wedge B$ is true only when both A and B are separately true. The expression $P(A) \ge P(A \wedge B)$ is therefore interpreted as: "The probability A is true is greater than or equal to the probability that both A and B are true.}.
@@ -116,6 +135,7 @@ As an example of how you might write your own code to analyze these data, let's 
 
 ```{r}
 # make density plot of perceived competence by party
+
 ggplot(data = face_data, aes(x = face_rating, color = party)) + # note that by setting color = party, 
   geom_density()                                                # the face ratings of each party will be 
                                                                 # displayed in different colors
@@ -137,7 +157,32 @@ Neither the graphical nor the statistical approaches suggest a significant diffe
 **Do the data suggest a significant difference between perceived competence of non-incumbent candidate faces in tossup vs. non-tossup races? What might explain any similarities or differences between these results and those from the previous question? How do your findings relate to the results and theory of Atkinson et al. (2009)?**
 
 ## Question 7: Data Science Question
-Atkinson et al. (2009, 236) suggest that "...incumbents from the most competitive districts would have higher facial quality than incumbents from the most safe incument districts due to the selection process of better faces to competitive districts, inducing a negative relationship betwen indumbent face and incument vote." **Do the data support the idea that seat safety is negatively correlated with incumbent facial quality? Make a plot to visualize this relationship.** Note that this question may require you to define at least one new variable.
+Atkinson et al. (2009, 236) suggest that "...incumbents from the most competitive districts would have higher facial quality than incumbents from the most safe incument districts due to the selection process of better faces to competitive districts, inducing a negative relationship betwen incumbent face and incumbent vote." **Do the data support the idea that seat safety is negatively correlated with incumbent facial quality? Make a plot to visualize this relationship.** Note that this question may require you to define at least one new variable.
+
+```{r}
+
+glimpse(face_data)
+
+
+new_face <- face_data %>% 
+  mutate(cook.num = ifelse(cook == "SolidDem", 4,
+                    ifelse(cook == "LikelyDem", 3,
+                    ifelse(cook == "LeanDem", 2, 
+                    ifelse(cook %in% c("TossupDem", "TossUpDem"), 1,
+                    ifelse(cook %in% c("TossupRep", "TossUpRep"), 1,
+                    ifelse(cook == "LeanRep", 2,
+                    ifelse(cook == "LikelyRep", 3,
+                    ifelse(cook == "SolidRep", 4, 5))))))))) %>% 
+  filter(incumbent == TRUE) %>% 
+  mutate(cook.num = as.numeric(cook.num))
+  
+new_face %>% ggplot(aes(y = cook.num, x = face_rating)) + geom_jitter(height = 0.1, width = 0) + 
+  stat_smooth(method = "lm")
+
+cor(new_face$cook.num, new_face$face_rating)
+
+```
+
 
 ## Question 8
 **Is there something else interesting or informative that you could explore using either of these datasets? If so, run it by a TF and try it out here.**
