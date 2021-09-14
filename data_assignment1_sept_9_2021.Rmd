@@ -198,12 +198,11 @@ Neither the graphical nor the statistical approaches suggest a significant diffe
 ```{r, warning = F, message = F}
 
 face_data %>% 
-  ggplot(aes(x = face_rating, color = incumbent)) + 
-  geom_density() +
+  ggplot(aes(x = face_rating, color = incumbent)) + geom_density() +
   labs(x = "Face Rating", y = "Density", 
        title = "Incumbent vs. Challenger Face Competency Ratings Density Plot")
 
-difference_in_means(face_rating ~ incumbent, data = face_data)
+difference_in_means(face_rating ~ incumbent, face_data)
 
 ```
 
@@ -213,13 +212,30 @@ difference_in_means(face_rating ~ incumbent, data = face_data)
 ## Question 6
 **Do the data suggest a significant difference between perceived competence of non-incumbent candidate faces in tossup vs. non-tossup races? What might explain any similarities or differences between these results and those from the previous question? How do your findings relate to the results and theory of Atkinson et al. (2009)?**
 
+```{r, warning = F, message = F}
+
+face_data %>% 
+  filter(incumbent == "FALSE") %>% 
+  ggplot(aes(x = face_rating, color = tossup)) + geom_density() + 
+  labs(x = "Face Rating", y = "Density", 
+       title = "Tossup vs. Non-tossup Face Competency Ratings Density Plot")
+
+difference_in_means(face_rating ~ tossup, face_data %>% filter(incumbent == "FALSE"))
+
+face_data %>% 
+  filter(incumbent == "FALSE") %>% 
+  group_by(tossup, incumbent) %>% 
+  summarize(n = n())
+
+```
+
+**ANSWER:** *While a glance at the density plot suggests a difference in average face ratings for tossup versus non-tossup races, since the former's peak has greater density at a higher face rating, the results of the difference in means t-test were not statistically significant, as zero is included in the confidence interval. But, looking at the data, only 38 of the non-incumbents were in tossup races, compared with 222 non-incumbents in non-tossup races. The former may be too small a sample size for a t-test.*
+
+
 ## Question 7: Data Science Question
 Atkinson et al. (2009, 236) suggest that "...incumbents from the most competitive districts would have higher facial quality than incumbents from the most safe incument districts due to the selection process of better faces to competitive districts, inducing a negative relationship betwen incumbent face and incumbent vote." **Do the data support the idea that seat safety is negatively correlated with incumbent facial quality? Make a plot to visualize this relationship.** Note that this question may require you to define at least one new variable.
 
 ```{r}
-
-glimpse(face_data)
-
 
 new_face <- face_data %>% 
   mutate(cook.num = ifelse(cook == "SolidDem", 4,
@@ -233,7 +249,8 @@ new_face <- face_data %>%
   filter(incumbent == TRUE) %>% 
   mutate(cook.num = as.numeric(cook.num))
   
-new_face %>% ggplot(aes(y = cook.num, x = face_rating)) + geom_jitter(height = 0.1, width = 0) + 
+new_face %>% filter(party == "dem") %>% 
+  ggplot(aes(y = face_rating, x = cook.num)) + geom_jitter(height = 0, width = 0.1) + 
   stat_smooth(method = "lm")
 
 cor(new_face$cook.num, new_face$face_rating)
@@ -243,3 +260,5 @@ cor(new_face$cook.num, new_face$face_rating)
 
 ## Question 8
 **Is there something else interesting or informative that you could explore using either of these datasets? If so, run it by a TF and try it out here.**
+
+
