@@ -246,19 +246,65 @@ new_face <- face_data %>%
                     ifelse(cook == "LeanRep", 2,
                     ifelse(cook == "LikelyRep", 3,
                     ifelse(cook == "SolidRep", 4, 5))))))))) %>% 
-  filter(incumbent == TRUE) %>% 
-  mutate(cook.num = as.numeric(cook.num))
+  mutate(cook.num = as.character(cook.num))
   
-new_face %>% filter(party == "dem") %>% 
-  ggplot(aes(y = face_rating, x = cook.num)) + geom_jitter(height = 0, width = 0.1) + 
-  stat_smooth(method = "lm")
-
-cor(new_face$cook.num, new_face$face_rating)
+ggplot(new_face, aes(x = cook.num, y = face_rating, fill = party)) + 
+       geom_boxplot() + labs(x = "Race Competitiveness*", y = "Face Rating", 
+                             title = "Does Competitiveness Correlate with Face Rating?",
+                             caption = "*score of 1 indicates most competitive (tossup),\nscore of 4 indicates least competitive (solid)") + 
+       scale_fill_manual(values = c("lightblue", "red"), 
+                         name = "Party",
+                         breaks = c("dem", "rep"),
+                         labels = c("Dem", "Rep")) + 
+       theme(plot.title = element_text(face = "bold"),
+             axis.title = element_text(face = "bold"))
 
 ```
 
 
 ## Question 8
 **Is there something else interesting or informative that you could explore using either of these datasets? If so, run it by a TF and try it out here.**
+
+```{r}
+
+# Scatter plot showing face ratings for candidates in each year
+
+new_face %>% 
+  filter(incumbent == "TRUE") %>%
+  ggplot(aes(x = year, y = face_rating, color = party)) + 
+  geom_jitter(height = 0, width = 0.1) + labs(x = "Year", y = "Face Rating", 
+                                              title = "Does Face Rating \"Improve\" Over Time?") + 
+  scale_color_manual(values = c("blue", "red"), 
+                     name = "Party",
+                     breaks = c("dem", "rep"),
+                     labels = c("Dem", "Rep")) + 
+  theme(plot.title = element_text(face = "bold"),
+        axis.title = element_text(face = "bold")) + 
+  geom_smooth(method = "lm")
+
+# Comparing regional face ratings
+
+new_face %>% 
+  mutate(region = ifelse(state %in% c("WA", "OR", "CA"), "Pacific",
+                  ifelse(state %in% c("NV", "MT", "WY", "CO", "UT", "ID"), "West",
+                  ifelse(state %in% c("AZ", "NM", "TX", "OK"), "Southwest", 
+                  ifelse(state %in% c("ND", "SD", "NE", "KS", "MO", "IA", 
+                                      "MN", "IL", "WI", "MI", "IN", "OH"), "Midwest",
+                  ifelse(state %in% c("AR", "LA", "TN", "MS", "AL", "GA", 
+                                      "FL", "SC", "NC", "KY", "VA", "MD", "DE", "WV"), "Southeast",
+                  ifelse(state %in% c("PA", "NY", "NJ", "RI", "CT", "MA", "VT", "NH", "ME"), "Northeast",
+                  ifelse(state %in% c("AK", "HI"), "AK / HI", "none")))))))) %>%
+  ggplot(aes(x = region, y = face_rating, fill = incumbent)) +
+  geom_boxplot() + labs(x = "Region", y = "Face Rating", 
+                        title = "Do Face Ratings Vary Regionally?") + 
+  scale_fill_manual(values = c("springgreen", "tomato1"), 
+                    name = "Incumbent?",
+                    breaks = c("TRUE", "FALSE"),
+                    labels = c("Yes", "No")) + 
+  theme(plot.title = element_text(face = "bold"),
+        axis.title = element_text(face = "bold"))
+  
+```
+
 
 
